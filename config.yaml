@@ -1,6 +1,8 @@
 name: ENS-Indexer
 networks:
-  - id: 1
+  - id: 11155111
+    rpc_config:
+      url: "https://rpc.sepolia.org"
     start_block: 0
     contracts:
       - name: ENSRegistryWithFallback
@@ -29,7 +31,7 @@ networks:
               - name: ENSRegistryEventsSummary
       - name: ETHRegistrarController
         address:
-          - "0x253553366Da8546fC250F225fe3d25d0C782303b"
+          - "0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85"
         handler: src/RegistrarControllerEventHandler.ts
         events:
           - event: NameRegistered(string name, bytes32 indexed label, address indexed owner, uint256 baseCost, uint256 premium, uint256 expires)
@@ -49,7 +51,7 @@ networks:
               - name: EthRegistrarControllerEventSummary
       - name: NameWrapper
         address:
-          - 0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401
+          - "0x0635513f179D50A207757E05759CbD106d7dFcE8"
         handler: src/NameWrapperHandler.ts
         events:
           - event: Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)
