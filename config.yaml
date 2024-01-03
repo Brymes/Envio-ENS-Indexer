@@ -13,7 +13,7 @@ networks:
             requiredEntities:
               - name: Account
               - name: Domain
-              - name: ENS`RegistryEventsSummary
+              - name: ENSRegistryEventsSummary
           - event: NewResolver(bytes32 indexed node, address resolver)
             requiredEntities:
               - name: Domain
