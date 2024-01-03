@@ -2,12 +2,6 @@
  *Please refer to https://docs.envio.dev for a thorough guide on all Envio indexer features*
  */
 import {
-  NameWrapperContract_Approval_handler,
-  NameWrapperContract_Approval_loader,
-  NameWrapperContract_ApprovalForAll_handler,
-  NameWrapperContract_ApprovalForAll_loader,
-  NameWrapperContract_ControllerChanged_handler,
-  NameWrapperContract_ControllerChanged_loader,
   NameWrapperContract_ExpiryExtended_handler,
   NameWrapperContract_ExpiryExtended_loader,
   NameWrapperContract_FusesSet_handler,
@@ -22,14 +16,11 @@ import {
   NameWrapperContract_TransferBatch_loader,
   NameWrapperContract_TransferSingle_handler,
   NameWrapperContract_TransferSingle_loader,
-  NameWrapperContract_URI_handler,
-  NameWrapperContract_URI_loader
 } from "../generated/src/Handlers.gen";
 
 import {
   ApprovalEntity,
   ControllerChangedEntity,
-  DomainNodeEntity,
   ExpiryExtendedEntity,
   FusesSetEntity,
   NameUnwrappedEntity,
@@ -59,104 +50,14 @@ const INITIAL_EVENTS_SUMMARY: NameWrapperEventsSummaryEntity = {
   uRIsCount: BigInt(0)
 };
 
-NameWrapperContract_Approval_loader(({ event, context }) => {
-  context.NameWrapperEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-});
-
-NameWrapperContract_Approval_handler(({ event, context }) => {
-  let summary = context.NameWrapperEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-
-  let currentSummaryEntity: NameWrapperEventsSummaryEntity =
-    summary ?? INITIAL_EVENTS_SUMMARY;
-
-  let nextSummaryEntity = {
-    ...currentSummaryEntity,
-    approvalsCount: currentSummaryEntity.approvalsCount + BigInt(1)
-  };
-
-  let approvalEntity: ApprovalEntity = {
-    id: event.transactionHash + event.logIndex.toString(),
-    owner: event.params.owner,
-    approved: event.params.approved,
-    tokenId: event.params.tokenId,
-    eventsSummary: GLOBAL_EVENTS_SUMMARY_KEY
-  };
-
-  context.NameWrapperEventsSummary.set(nextSummaryEntity);
-  context.Approval.set(approvalEntity);
-});
-
-NameWrapperContract_ApprovalForAll_loader(({ event, context }) => {
-  context.NameWrapperEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-});
-
-NameWrapperContract_ApprovalForAll_handler(({ event, context }) => {
-  let summary = context.NameWrapperEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-
-  let currentSummaryEntity: NameWrapperEventsSummaryEntity =
-    summary ?? INITIAL_EVENTS_SUMMARY;
-
-  let nextSummaryEntity = {
-    ...currentSummaryEntity,
-    approvalForAllsCount: currentSummaryEntity.approvalForAllsCount + BigInt(1)
-  };
-
-  let approvalForAllEntity: NWApprovalForAllEntity = {
-    id: event.transactionHash + event.logIndex.toString(),
-    account: event.params.account,
-    operator: event.params.operator,
-    approved: event.params.approved,
-    eventsSummary: GLOBAL_EVENTS_SUMMARY_KEY
-  };
-
-  context.NameWrapperEventsSummary.set(nextSummaryEntity);
-  context.NWApprovalForAll.set(approvalForAllEntity);
-});
-
-NameWrapperContract_ControllerChanged_loader(({ event, context }) => {
-  context.NameWrapperEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-});
-
-NameWrapperContract_ControllerChanged_handler(({ event, context }) => {
-  let summary = context.NameWrapperEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-
-  let currentSummaryEntity: NameWrapperEventsSummaryEntity =
-    summary ?? INITIAL_EVENTS_SUMMARY;
-
-  let nextSummaryEntity = {
-    ...currentSummaryEntity,
-    controllerChangedsCount:
-      currentSummaryEntity.controllerChangedsCount + BigInt(1)
-  };
-
-  let controllerChangedEntity: ControllerChangedEntity = {
-    id: event.transactionHash + event.logIndex.toString(),
-    controller: event.params.controller,
-    active: event.params.active,
-    eventsSummary: GLOBAL_EVENTS_SUMMARY_KEY
-  };
-
-  context.NameWrapperEventsSummary.set(nextSummaryEntity);
-  context.ControllerChanged.set(controllerChangedEntity);
-});
 
 NameWrapperContract_ExpiryExtended_loader(({ event, context }) => {
   context.NameWrapperEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-  context.DomainNode.load(event.params.node, { loaders: { loadDomain: {} } });
 });
 
 NameWrapperContract_ExpiryExtended_handler(({ event, context }) => {
   let summary = context.NameWrapperEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-  let node = context.DomainNode.get(event.params.node);
 
-  if (node !== undefined) {
-    let domain = context.DomainNode.getDomain(node);
-    domain = {
-      ...domain,
-      expiryDate: event.params.expiry
-    };
-    context.Domain.set(domain);
-  }
 
   let currentSummaryEntity: NameWrapperEventsSummaryEntity =
     summary ?? INITIAL_EVENTS_SUMMARY;
@@ -231,26 +132,11 @@ NameWrapperContract_NameUnwrapped_handler(({ event, context }) => {
 
 NameWrapperContract_NameWrapped_loader(({ event, context }) => {
   context.NameWrapperEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-  context.DomainNode.load(event.params.node, { loaders: { loadDomain: {} } });
 });
 
 NameWrapperContract_NameWrapped_handler(({ event, context }) => {
   let summary = context.NameWrapperEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-  let domMeta = context.DomainMeta.get(event.params.name);
 
-  if (domMeta !== undefined) {
-    let domain = context.DomainMeta.getDomain(domMeta);
-    domain = {
-      ...domain,
-      node: event.params.node,
-      expiryDate: event.params.expiry
-    };
-
-    let node: DomainNodeEntity = { domain: domain.id, id: event.params.node };
-
-    context.DomainNode.set(node);
-    context.Domain.set(domain);
-  }
 
   let currentSummaryEntity: NameWrapperEventsSummaryEntity =
     summary ?? INITIAL_EVENTS_SUMMARY;
@@ -357,30 +243,4 @@ NameWrapperContract_TransferSingle_handler(({ event, context }) => {
 
   context.NameWrapperEventsSummary.set(nextSummaryEntity);
   context.TransferSingle.set(transferSingleEntity);
-});
-
-NameWrapperContract_URI_loader(({ event, context }) => {
-  context.NameWrapperEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-});
-
-NameWrapperContract_URI_handler(({ event, context }) => {
-  let summary = context.NameWrapperEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-
-  let currentSummaryEntity: NameWrapperEventsSummaryEntity =
-    summary ?? INITIAL_EVENTS_SUMMARY;
-
-  let nextSummaryEntity = {
-    ...currentSummaryEntity,
-    uRIsCount: currentSummaryEntity.uRIsCount + BigInt(1)
-  };
-
-  let uRIEntity: URIEntity = {
-    id: event.transactionHash + event.logIndex.toString(),
-    value: event.params.value,
-    eventId: event.params.id,
-    eventsSummary: GLOBAL_EVENTS_SUMMARY_KEY
-  };
-
-  context.NameWrapperEventsSummary.set(nextSummaryEntity);
-  context.URI.set(uRIEntity);
 });

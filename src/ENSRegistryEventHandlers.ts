@@ -2,8 +2,6 @@
  *Please refer to https://docs.envio.dev for a thorough guide on all Envio indexer features*
  */
 import {
-  ENSRegistryWithFallbackContract_ApprovalForAll_handler,
-  ENSRegistryWithFallbackContract_ApprovalForAll_loader,
   ENSRegistryWithFallbackContract_NewOwner_handler,
   ENSRegistryWithFallbackContract_NewOwner_loader,
   ENSRegistryWithFallbackContract_NewResolver_handler,
@@ -34,49 +32,14 @@ const INITIAL_EVENTS_SUMMARY: ENSRegistryEventsSummaryEntity = {
   transfersCount: BigInt(0)
 };
 
-ENSRegistryWithFallbackContract_ApprovalForAll_loader(({ event, context }) => {
-  context.ENSRegistryEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-});
-
-ENSRegistryWithFallbackContract_ApprovalForAll_handler(({ event, context }) => {
-  let summary = context.ENSRegistryEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-
-  let currentSummaryEntity: ENSRegistryEventsSummaryEntity =
-    summary ?? INITIAL_EVENTS_SUMMARY;
-
-  let nextSummaryEntity = {
-    ...currentSummaryEntity,
-    approvalForAllsCount: currentSummaryEntity.approvalForAllsCount + BigInt(1)
-  };
-
-  let approvalForAllEntity: ApprovalForAllEntity = {
-    id: event.transactionHash + event.logIndex.toString(),
-    owner: event.params.owner,
-    operator: event.params.operator,
-    approved: event.params.approved,
-    eventsSummary: GLOBAL_EVENTS_SUMMARY_KEY
-  };
-
-  context.ENSRegistryEventsSummary.set(nextSummaryEntity);
-  context.ApprovalForAll.set(approvalForAllEntity);
-});
 
 ENSRegistryWithFallbackContract_NewOwner_loader(({ event, context }) => {
   context.ENSRegistryEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-  context.DomainNode.load(event.params.node, { loaders: { loadDomain: {} } });
 });
 
 ENSRegistryWithFallbackContract_NewOwner_handler(({ event, context }) => {
   let summary = context.ENSRegistryEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-  let node = context.DomainNode.get(event.params.node);
 
-  if (node !== undefined) {
-    let domain = context.DomainNode.getDomain(node);
-    domain = {
-      ...domain
-    };
-    context.Domain.set(domain);
-  }
 
   let currentSummaryEntity: ENSRegistryEventsSummaryEntity =
     summary ?? INITIAL_EVENTS_SUMMARY;
@@ -100,18 +63,10 @@ ENSRegistryWithFallbackContract_NewOwner_handler(({ event, context }) => {
 
 ENSRegistryWithFallbackContract_NewResolver_loader(({ event, context }) => {
   context.ENSRegistryEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-  context.DomainNode.load(event.params.node, { loaders: { loadDomain: {} } });
 });
 
 ENSRegistryWithFallbackContract_NewResolver_handler(({ event, context }) => {
   let summary = context.ENSRegistryEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-  let node = context.DomainNode.get(event.params.node);
-
-  if (node !== undefined) {
-    let domain = context.DomainNode.getDomain(node);
-    domain = { ...domain, resolver: event.params.resolver };
-    context.Domain.set(domain);
-  }
 
   let currentSummaryEntity: ENSRegistryEventsSummaryEntity =
     summary ?? INITIAL_EVENTS_SUMMARY;
@@ -134,18 +89,11 @@ ENSRegistryWithFallbackContract_NewResolver_handler(({ event, context }) => {
 
 ENSRegistryWithFallbackContract_NewTTL_loader(({ event, context }) => {
   context.ENSRegistryEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-  context.DomainNode.load(event.params.node, { loaders: { loadDomain: {} } });
 });
 
 ENSRegistryWithFallbackContract_NewTTL_handler(({ event, context }) => {
   let summary = context.ENSRegistryEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-  let node = context.DomainNode.get(event.params.node);
 
-  if (node !== undefined) {
-    let domain = context.DomainNode.getDomain(node);
-    domain = { ...domain, ttl: event.params.ttl };
-    context.Domain.set(domain);
-  }
 
   let currentSummaryEntity: ENSRegistryEventsSummaryEntity =
     summary ?? INITIAL_EVENTS_SUMMARY;
@@ -168,18 +116,11 @@ ENSRegistryWithFallbackContract_NewTTL_handler(({ event, context }) => {
 
 ENSRegistryWithFallbackContract_Transfer_loader(({ event, context }) => {
   context.ENSRegistryEventsSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
-  context.DomainNode.load(event.params.node, { loaders: { loadDomain: {} } });
+
 });
 
 ENSRegistryWithFallbackContract_Transfer_handler(({ event, context }) => {
   let summary = context.ENSRegistryEventsSummary.get(GLOBAL_EVENTS_SUMMARY_KEY);
-  let node = context.DomainNode.get(event.params.node);
-
-  if (node !== undefined) {
-    let domain = context.DomainNode.getDomain(node);
-    domain = { ...domain, owner: event.params.owner };
-    context.Domain.set(domain);
-  }
 
   let currentSummaryEntity: ENSRegistryEventsSummaryEntity =
     summary ?? INITIAL_EVENTS_SUMMARY;

@@ -11,19 +11,20 @@ networks:
         events:
           - event: NewOwner(bytes32 indexed node, bytes32 indexed label, address owner)
             requiredEntities:
-              - name: DomainNode
-              - name: ENSRegistryEventsSummary
+              - name: Account
+              - name: Domain
+              - name: ENS`RegistryEventsSummary
           - event: NewResolver(bytes32 indexed node, address resolver)
             requiredEntities:
-              - name: DomainNode
+              - name: Domain
               - name: ENSRegistryEventsSummary
           - event: NewTTL(bytes32 indexed node, uint64 ttl)
             requiredEntities:
-              - name: DomainNode
+              - name: Domain
               - name: ENSRegistryEventsSummary
           - event: Transfer(bytes32 indexed node, address owner)
             requiredEntities:
-              - name: DomainNode
+              - name: Domain
               - name: ENSRegistryEventsSummary
       - name: ETHRegistrarController
         address:
@@ -36,13 +37,13 @@ networks:
             requiredEntities:
               - name: Account
               - name: Domain
-              - name: DomainMeta
+              - name: Registration
               - name: EthRegistrarControllerEventSummary
           - event: NameRenewed(string name, bytes32 indexed label, uint256 cost, uint256 expires)
             requiredEntities:
               - name: Account
               - name: Domain
-              - name: DomainMeta
+              - name: Registration
               - name: EthRegistrarControllerEventSummary
           - event: OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
             requiredEntities:
@@ -55,18 +56,20 @@ networks:
           - event: ExpiryExtended(bytes32 indexed node, uint64 expiry)
             requiredEntities:
               - name: NameWrapperEventsSummary
-              - name: DomainNode
+              - name: Domain
           - event: FusesSet(bytes32 indexed node, uint32 fuses)
             requiredEntities:
               - name: NameWrapperEventsSummary
           - event: NameUnwrapped(bytes32 indexed node, address owner)
             requiredEntities:
+              - name: Domain
               - name: NameWrapperEventsSummary
           - event: NameWrapped(bytes32 indexed node, bytes name, address owner, uint32 fuses, uint64 expiry)
             requiredEntities:
-              - name: DomainMeta
+              - name: Account
+              - name: WrappedDomain
+              - name: Domain
               - name: NameWrapperEventsSummary
-              - name: DomainNode
           - event: OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
             requiredEntities:
               - name: NameWrapperEventsSummary

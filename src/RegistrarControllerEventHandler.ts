@@ -2,23 +2,24 @@
  *Please refer to https://docs.envio.dev for a thorough guide on all Envio indexer features*
  */
 import {
-    ETHRegistrarControllerContract_NameRegistered_handler,
-    ETHRegistrarControllerContract_NameRegistered_loader,
-    ETHRegistrarControllerContract_NameRenewed_handler,
-    ETHRegistrarControllerContract_NameRenewed_loader,
-    ETHRegistrarControllerContract_OwnershipTransferred_handler,
-    ETHRegistrarControllerContract_OwnershipTransferred_loader
+  ETHRegistrarControllerContract_NameRegistered_handler,
+  ETHRegistrarControllerContract_NameRegistered_loader,
+  ETHRegistrarControllerContract_NameRenewed_handler,
+  ETHRegistrarControllerContract_NameRenewed_loader,
+  ETHRegistrarControllerContract_OwnershipTransferred_handler,
+  ETHRegistrarControllerContract_OwnershipTransferred_loader
 } from "../generated/src/Handlers.gen";
 
 import {
-    AccountEntity,
-    DomainEntity,
-    DomainMetaEntity,
-    EthRegistrarControllerEventSummaryEntity,
-    NameRegisteredEntity,
-    NameRenewedEntity,
-    OwnershipTransferredEntity
+  AccountEntity,
+  DomainEntity,
+  EthRegistrarControllerEventSummaryEntity,
+  NameRegisteredEntity,
+  NameRenewedEntity,
+  OwnershipTransferredEntity,
+  RegistrationEntity
 } from "./src/Types.gen";
+import { nameHash } from "./utils";
 
 const GLOBAL_EVENTS_SUMMARY_KEY = "GlobalEthRegistrarControllerEventsSummary";
 
@@ -57,38 +58,45 @@ ETHRegistrarControllerContract_NameRegistered_handler(({ event, context }) => {
     eventsSummary: GLOBAL_EVENTS_SUMMARY_KEY
   };
 
-  let acc: AccountEntity = { id: event.params.owner };
+  context.EthRegistrarControllerEventSummary.set(nextSummaryEntity);
+  context.NameRegistered.set(nameRegisteredEntity);
 
-  let label: DomainMetaEntity = {
-    domain: event.transactionHash + event.logIndex.toString(),
-    id: event.params.name,
-    label: event.params.label
-  };
+  let name = event.params.name + ".eth";
+  let node = nameHash(name);
+
 
   let domain: DomainEntity = {
-    id: event.transactionHash + event.logIndex.toString(),
-    isMigrated: false,
+    id: node,
     ttl: BigInt(0),
-    name: event.params.name,
+    name: name,
     owner: event.params.owner,
     srcAddress: event.srcAddress,
     resolver: null,
     parent: null,
-    node: null,
     subdomainCount: 0,
     expiryDate: event.params.expires,
     baseCost: event.params.baseCost,
     renewPremium: event.params.premium,
-    blockTimestamp: event.blockTimestamp
+    blockTimestamp: event.blockTimestamp,
+    label: event.params.label,
+    registrant: event.params.owner,
+    wrappedOwner: null,
   };
 
-  context.EthRegistrarControllerEventSummary.set(nextSummaryEntity);
-  context.NameRegistered.set(nameRegisteredEntity);
+  let acc: AccountEntity = { id: event.params.owner };
+  let registration: RegistrationEntity = {
+    id: event.params.label,
+    cost: BigInt(event.params.baseCost),
+    domain: node,
+    registrationDate: BigInt(event.blockTimestamp),
+    expiryDate: event.params.expires,
+    registrant: acc.id
+  };
+
   context.Account.set(acc);
   context.Domain.set(domain);
-  context.DomainMeta.set(label);
+  context.Registration.set(registration);
 });
-
 ETHRegistrarControllerContract_NameRenewed_loader(({ event, context }) => {
   context.EthRegistrarControllerEventSummary.load(GLOBAL_EVENTS_SUMMARY_KEY);
 });
@@ -97,17 +105,6 @@ ETHRegistrarControllerContract_NameRenewed_handler(({ event, context }) => {
   let summary = context.EthRegistrarControllerEventSummary.get(
     GLOBAL_EVENTS_SUMMARY_KEY
   );
-  let meta = context.DomainMeta.get(event.params.label);
-
-  if (meta === undefined) {
-    return;
-  }
-
-  let domain = context.DomainMeta.getDomain(meta);
-  domain = {
-    ...domain,
-    expiryDate: event.params.expires
-  };
 
   let currentSummaryEntity: EthRegistrarControllerEventSummaryEntity =
     summary ?? INITIAL_EVENTS_SUMMARY;
@@ -128,7 +125,6 @@ ETHRegistrarControllerContract_NameRenewed_handler(({ event, context }) => {
 
   context.EthRegistrarControllerEventSummary.set(nextSummaryEntity);
   context.NameRenewed.set(nameRenewedEntity);
-  context.Domain.set(domain);
 });
 
 ETHRegistrarControllerContract_OwnershipTransferred_loader(
